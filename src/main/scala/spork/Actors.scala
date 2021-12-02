@@ -20,9 +20,9 @@ object MapReducer {
 object Master {
 
   case class Result[K, V](k: K, v: V)
-  case class Input[K, V](k: K, v: V, respondTo: ActorRef[Result[K, V]])
+  case class Input[K, V, L, W](k: K, v: V, respondTo: ActorRef[Result[K, V]])
 
-  def apply[K, V](data: Map[K, V], numMapReducers: Int): Behavior[Result[K, V]] = {
+  def apply[K, V, L, W](data: Map[K, V], numMapReducers: Int, mapFunction: ((K, V)) => Seq[(L, W)]): Behavior[Result[K, V]] = {
     Behaviors.setup { context =>
       val mapReducers = (1 to numMapReducers) map { i =>
         context.spawn(MapReducer[K, V](), s"MapReducer-$i")
@@ -51,7 +51,13 @@ object Actors extends App {
     (5, "hello my name is michal"),
     (6, "it was the best of times"),
   )
+
+  val mapFunction: ((Int, String)) => Seq[(String, Int)] = {
+    case (_, v) =>
+      v.split(" ").map(word => (word, 1))
+  }
+
   val numMapReducers = 4
-  val master= ActorSystem(Master(data, numMapReducers), "AkkaQuickStart")
+  val master= ActorSystem(Master(data, numMapReducers, mapFunction), "AkkaQuickStart")
 
 }

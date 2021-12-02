@@ -13,6 +13,20 @@ object DataDefinition extends App {
 }
 
 
+
+sealed trait DataDefinition[K, V] extends (() => Future[Map[K, V]]) {
+  def map[L, W: Monoid](f: (K, V) => Seq[(K2, V2)]): Seq[(K2, V2)]
+
+
+}
+
+
+abstract class MappedData[K, V] extends DataDefinition[A] {
+
+}
+
+
+
 sealed trait MapReduce[A] extends (() => A)
 
 trait MapData[K1, V1] extends MapReduce[Map[K1, V1]] {
